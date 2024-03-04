@@ -32,6 +32,10 @@ how_long_until = parsy.seq(
     prefix=string("how long until") << parsy.whitespace, date=date
 ).tag("how long until")
 
+how_long_since = parsy.seq(
+    prefix=string("how long since") << parsy.whitespace, date=date
+).tag("how long since")
+
 full_parser = how_many_until | how_long_until
 
 
@@ -40,8 +44,26 @@ def parse(target: str, override_present=None):
     present = datetime.date.today()
 
     parser_name, parsed = full_parser.parse(tt)
-    d = datetime.date(**parsed["date"])
-    return days_between(present, d)
+    parsed_date = datetime.date(**parsed["date"])
+
+    if parser_name == "how long since":
+        older = parsed_date
+        newer = present
+    elif parser_name == "how long until":
+        older = present
+        newer = parsed_date
+    else:
+        raise ValueError(f"unknown parser : { parser_name }")
+
+    resp = {
+        "query": target,
+        "parser_used": parser_name,
+        "older": older.strftime("%a %d %b %Y"),
+        "newer": newer.strftime("%a %d %b %Y"),
+        "calculation": days_between(older, newer),
+    }
+
+    return resp
 
 
 def days_between(older: datetime.date, newer: datetime.date):
@@ -53,9 +75,5 @@ def days_between(older: datetime.date, newer: datetime.date):
 
     return {
         "status": "success",
-        "older": older.strftime("%a %d %b %Y"),
-        "newer": newer.strftime("%a %d %b %Y"),
         "days": num_days,
     }
-
-    return f"There are {num_days} days between {older} and {newer}"

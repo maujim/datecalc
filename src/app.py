@@ -22,12 +22,7 @@ def parse_endpoint():
         if not query:
             abort(400, "Missing required query parameter: query")
 
-    ans = parse(query)
-
-    resp = {
-        "query": query,
-        "response": ans,
-    }
+    resp = parse(query)
     return jsonify(resp)
 
 
