@@ -36,7 +36,7 @@ how_long_since = parsy.seq(
     prefix=string("how long since") << parsy.whitespace, date=date
 ).tag("how long since")
 
-full_parser = how_many_until | how_long_until
+full_parser = how_many_until | how_long_until | how_long_since
 
 
 def parse(target: str, override_present=None):
@@ -46,6 +46,11 @@ def parse(target: str, override_present=None):
     parser_name, parsed = full_parser.parse(tt)
     parsed_date = datetime.date(**parsed["date"])
 
+    # based on the parser used, we try to get the user intent
+    # and we set older and newer accordingly
+    #
+    # days_between expects older and newer passed in the right order
+    # so a failure there means we decoded the intent incorrectly
     if parser_name == "how long since":
         older = parsed_date
         newer = present

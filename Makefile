@@ -1,5 +1,5 @@
 run:
-	./venv/bin/ipython -i ./src/main.py
+	./venv/bin/flask --app src/app --debug run
 
 venv:
 	python3.11 -m venv venv
