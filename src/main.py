@@ -58,7 +58,7 @@ def parse(target: str, override_present=None):
         older = present
         newer = parsed_date
     else:
-        raise ValueError(f"unknown parser : { parser_name }")
+        resp = { "query": target, "unknown parser": parser_name }
 
     resp = {
         "query": target,
