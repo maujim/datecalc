@@ -17,12 +17,28 @@ year = four_digit.desc("4 digit year")
 month = two_digit.desc("2 digit month")
 day = two_digit.desc("2 digit day")
 
+number = regex(r"[0-9]+").map(int)
+
 ## mod parser
 
-date = seq(year=year << dash, month=month << dash, day=day)
+simple_date = seq(year=year << dash, month=month << dash, day=day).combine_dict(
+    datetime.date
+)
 
-units = parsy.string_from("days", "weeks", "months", "years")
-units_spaced = parsy.whitespace >> units << parsy.whitespace
+
+@parsy.generate
+def date():
+    zz = simple_date.tag("simple")
+
+    tag, parsed = yield zz
+    return parsed
+
+
+# all the params from the timedelta constructor are supported
+# https://docs.python.org/3/library/datetime.html#datetime.timedelta
+units = parsy.string_from(
+    "days", "seconds", "microseconds", "milliseconds", "minutes", "hours", "weeks"
+)
 
 how_many_until = parsy.seq(
     prefix=string("how many days until") << parsy.whitespace, date=date
@@ -36,15 +52,80 @@ how_long_since = parsy.seq(
     prefix=string("how long since") << parsy.whitespace, date=date
 ).tag("how long since")
 
-full_parser = how_many_until | how_long_until | how_long_since
+time_after = parsy.seq(
+    num=number << parsy.whitespace,
+    units=units << parsy.whitespace << string_from("after", "from") << parsy.whitespace,
+    date=date,
+).tag("time after")
 
+
+@parsy.generate
+def time_after_generated():
+    tag, parsed = yield time_after
+    start_date = parsed["date"]
+
+    params = {parsed["units"]: parsed["num"]}
+    delta = datetime.timedelta(**params)
+
+    return {
+        "start_date": start_date,
+        "delta": parsed["num"],
+        "parser": tag,
+        "result": {
+            "end_date": start_date + delta,
+        },
+    }
+
+
+time_before = parsy.seq(
+    num=number << parsy.whitespace,
+    units=units << parsy.whitespace << string_from("before", "to") << parsy.whitespace,
+    date=date,
+).tag("time before")
+
+
+@parsy.generate
+def time_before_generated():
+    tag, parsed = yield time_before
+    start_date = parsed["date"]
+
+    params = {parsed["units"]: parsed["num"]}
+    delta = datetime.timedelta(**params)
+
+    return {
+        "start_date": start_date,
+        "delta": parsed["num"],
+        "parser": tag,
+        "result": {
+            "end_date": start_date - delta,
+        },
+    }
+
+
+between_prefix = (
+    parsy.string_from("how much time", "how long", "how many days")
+    << parsy.whitespace
+    << string("between")
+    << parsy.whitespace
+)
+between = parsy.seq(prefix=between_prefix, date=date).tag("between")
+
+
+@parsy.generate
+def between_generated():
+    raise UnimplementedError
 
 def parse(target: str, override_present=None):
     tt = target.strip()
     present = datetime.date.today()
 
-    parser_name, parsed = full_parser.parse(tt)
-    parsed_date = datetime.date(**parsed["date"])
+    try:
+        full = time_before_generated | time_after_generated
+        return full.parse(tt)
+    except ParseError as err:
+        pass
+
+    parser_name, parsed = date_comparison_parsers.parse(tt)
 
     # based on the parser used, we try to get the user intent
     # and we set older and newer accordingly
@@ -52,13 +133,13 @@ def parse(target: str, override_present=None):
     # days_between expects older and newer passed in the right order
     # so a failure there means we decoded the intent incorrectly
     if parser_name == "how long since":
-        older = parsed_date
+        older = parsed["date"]
         newer = present
     elif parser_name == "how long until":
         older = present
-        newer = parsed_date
+        newer = parsed["date"]
     else:
-        resp = { "query": target, "unknown parser": parser_name }
+        return {"query": target, "unknown parser": parser_name}
 
     resp = {
         "query": target,
@@ -69,16 +150,3 @@ def parse(target: str, override_present=None):
     }
 
     return resp
-
-
-def days_between(older: datetime.date, newer: datetime.date):
-    if older > newer:
-        return {"status": "error", "reason": "wrong order of dates"}
-
-    delta = newer - older
-    num_days = delta.days
-
-    return {
-        "status": "success",
-        "days": num_days,
-    }
