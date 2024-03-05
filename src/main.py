@@ -52,7 +52,7 @@ units = parsy.string_from(
 )
 
 how_long_until = parsy.seq(
-    prefix=string("how long until") << parsy.whitespace, date=date
+    prefix=string_from("how long", "how many days") << parsy.whitespace, >>"until") << parsy.whitespace, date=date
 ).tag("how long until")
 
 how_many_until = parsy.seq(
@@ -81,15 +81,12 @@ def how_long_until_generated():
     }
 
 
-how_long_since = parsy.seq(
-    prefix=string("how long since") << parsy.whitespace, date=date
-).tag("how long since")
-
-
 @parsy.generate
 def how_long_since_generated():
-    tag, parsed = yield how_long_since
-    start_date = parsed["date"]
+    parsed = yield how_long_since
+    yield parsy.whitespace
+    start_date = yield date
+
     end_date = datetime.date.today()
 
     # instead of this assert, maybe we should fail gracefully
@@ -100,7 +97,7 @@ def how_long_since_generated():
     return {
         "start_date": start_date,
         "end_date": end_date,
-        "parser": tag,
+        "parser": "how long since"
         "result": {
             "delta": delta,
         },
