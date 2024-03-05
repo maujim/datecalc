@@ -1,7 +1,7 @@
 import datetime
 import sys, traceback
 
-from parsy import regex
+from parsy import regex, string_from
 from parsy import *
 import parsy
 
@@ -77,7 +77,7 @@ def how_long_until_generated():
 
 @parsy.generate
 def how_long_since_generated():
-    parsed = yield string('how long since')
+    parsed = yield string("how long since")
     yield parsy.whitespace
     start_date = yield date
 
@@ -148,18 +148,27 @@ def time_before_generated():
     }
 
 
-between_prefix = (
-    parsy.string_from("how much time", "how long", "how many days")
-    << parsy.whitespace
-    << string("between")
-    << parsy.whitespace
-)
-between = parsy.seq(prefix=between_prefix, date=date).tag("between")
-
-
 @parsy.generate
 def between_generated():
-    raise UnimplementedError
+    yield parsy.string_from("how much time", "how long", "how many days")
+    yield parsy.whitespace >> string("between") << parsy.whitespace
+    start_date = yield date
+    yield parsy.whitespace >> string("and") << parsy.whitespace
+    end_date = yield date
+
+    # instead of this assert, maybe we should fail gracefully
+    assert start_date <= end_date
+
+    delta = end_date - start_date
+
+    return {
+        "start_date": start_date,
+        "end_date": end_date,
+        "parser": "between",
+        "result": {
+            "delta": delta.days,
+        },
+    }
 
 
 def parse(target: str, override_present=None):
@@ -171,5 +180,6 @@ def parse(target: str, override_present=None):
         | time_after_generated
         | how_long_since_generated
         | how_long_until_generated
+        | between_generated
     )
     return full.parse(tt)
