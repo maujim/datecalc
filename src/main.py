@@ -54,10 +54,9 @@ units = parsy.string_from(
 def how_long_until_generated():
     yield string_from("how long", "how many days")
     yield parsy.whitespace
-    yield string_from('until', 'till')
+    yield string_from("until", "till")
     yield parsy.whitespace
     end_date = yield date
-
 
     start_date = datetime.date.today()
 
@@ -78,7 +77,7 @@ def how_long_until_generated():
 
 @parsy.generate
 def how_long_since_generated():
-    parsed = yield how_long_since
+    parsed = yield string('how long since')
     yield parsy.whitespace
     start_date = yield date
 
