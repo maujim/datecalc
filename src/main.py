@@ -29,7 +29,7 @@ today_ = string("today").map(lambda x: datetime.date.today())
 tomorrow_ = string_from("tomorrow", "tmrw").map(
     lambda x: datetime.date.today() + datetime.timedelta(days=1)
 )
-yesterday_ = string("yesterday").map(
+yesterday_ = string_from("yesterday", "yest").map(
     lambda x: datetime.date.today() - datetime.timedelta(days=1)
 )
 
@@ -93,7 +93,7 @@ def how_long_since_generated():
         "end_date": end_date,
         "parser": "how long since",
         "result": {
-            "delta": delta,
+            "delta": delta.days,
         },
     }
 
