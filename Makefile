@@ -1,6 +1,9 @@
 run:
 	./venv/bin/flask --app src/app --debug run
 
+test:
+	./venv/bin/pytest .
+
 venv:
 	python3.11 -m venv venv
 	./venv/bin/pip3 install -U pip
