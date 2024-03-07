@@ -1,6 +1,6 @@
 from flask import Flask, request, abort, jsonify, render_template
 
-from main import parse
+from .main import run_application_parser
 
 app = Flask(__name__, template_folder="./templates")
 
@@ -22,7 +22,7 @@ def parse_endpoint():
         if not query:
             abort(400, "Missing required query parameter: query")
 
-    resp = parse(query)
+    resp = run_application_parser(query)
     return jsonify(resp)
 
 

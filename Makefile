@@ -1,8 +1,5 @@
 run:
-	./venv/bin/flask --app src/app --debug run
-
-test:
-	./venv/bin/pytest .
+	./venv/bin/flask --app src/datecalc/app --debug run --port 8888
 
 venv:
 	python3.11 -m venv venv
@@ -13,4 +10,7 @@ save-requirements:
 	./venv/bin/pip3 freeze > requirements.txt
 
 test:
-	./venv/bin/python ./src/main.py test
+	./venv/bin/pytest .
+
+editable-install:
+	./venv/bin/pip3 install --editable .
