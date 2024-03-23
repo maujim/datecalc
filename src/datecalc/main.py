@@ -202,6 +202,66 @@ def test_named_date(input_str, expected_date):
     assert named_date.parse(input_str.lower()) == expected_date
 
 
+def generate_month2():
+    tlm = {
+        datetime.date(2022, month, 1).strftime("%b").lower(): month
+        for month in range(1, 13)
+    }
+    three_letter_month = (
+        string_from(*tlm.keys()).desc("three letter month").map(lambda x: tlm[x])
+    )
+
+    lookup_flm = {
+        datetime.date(2022, month, 1).strftime("%B").lower(): month
+        for month in range(1, 13)
+    }
+    full_letter_month = (
+        string_from(*lookup_flm.keys())
+        .desc("full letter month")
+        .map(lambda x: lookup_flm[x])
+    )
+
+    month2 = month | full_letter_month | three_letter_month
+    return month2
+
+
+@parsy.generate
+def informal_date():
+    month2 = generate_month2()
+    res = yield seq(
+        prefix=parsy.string_from("beginning", "start", "end") << parsy.whitespace,
+        month=parsy.string("of") >> parsy.whitespace >> month2,
+    )
+
+    # NOTE: if you ask for 'end of april' and its currently june 2024
+    # should we assume april 2024 or april 2025?
+    # atm, we always match to current year
+
+    target_date = datetime.date(
+        day=1,
+        year=datetime.date.today().year,
+        month=res["month"],
+    )
+
+    if res["prefix"] == "end":
+        return target_date + relativedelta(months=1) + relativedelta(days=-1)
+
+    return target_date
+
+
+@pytest.mark.parametrize(
+    "input_str, expected_date",
+    [
+        ("end of april", datetime.date(2024, 4, 30)),
+        ("beginning of november", datetime.date(2024, 11, 1)),
+        ("end of feb", datetime.date(2024, 2, 29)),
+        ("start of july", datetime.date(2024, 7, 1)),
+    ],
+)
+def test_informal_date(input_str, expected_date):
+    assert informal_date.parse(input_str.lower()) == expected_date
+
+
 @parsy.generate
 def date():
     date_final_final_v3 = (
@@ -209,6 +269,7 @@ def date():
         | _date_yyyymmdd.desc("yyyy-mm-dd")
         | _date_ddmmyyyy.desc("dd-mm-yyyy")
         | _date_mmddyyyy.desc("mm-dd-yyyy")
+        | informal_date
     )
 
     parsed = yield date_final_final_v3.desc("one of the supported date formats")
