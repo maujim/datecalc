@@ -1,5 +1,6 @@
 run:
-	./venv/bin/flask --app src/datecalc/app --debug run --port 8888
+	./venv/bin/pip3 install --editable . && \
+		./venv/bin/python3 app.py
 
 venv:
 	python3.11 -m venv venv
