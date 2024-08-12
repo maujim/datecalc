@@ -19,6 +19,7 @@ six==1.16.0
 stack-data==0.6.3
 traitlets==5.14.1
 wcwidth==0.2.12
+orjson==3.10.7
 pytest
 python-dateutil
 python-fasthtml

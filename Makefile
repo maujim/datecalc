@@ -9,3 +9,6 @@ venv:
 
 test:
 	./venv/bin/pytest src/datecalc/main.py
+
+format:
+	./venv/bin/black src/ app.py
