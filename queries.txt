@@ -1,0 +1,39 @@
+What is 1000 days from today?
+What is 1000 days before today?
+What is 10,000 days from January 1, 2023?
+What is 10,000 days before December 31, 2023?
+How many days are between January 1, 1900, and January 1, 2000?
+How many weeks are between January 1, 2000, and January 1, 2023?
+How many months are between January 1, 1900, and January 1, 2023?
+How many years are between January 1, 1900, and January 1, 2023?
+What is 100 years from today?
+What is 100 years before today?
+What is -1 day from today?
+What is -7 days from today?
+What is -30 days from January 1, 2023?
+What is -1 week from today?
+What is -2 weeks from February 15, 2023?
+What is -1 month from today?
+What is -3 months from March 10, 2023?
+What is -1 year from today?
+What is -5 years from December 31, 2023?
+What is -100 days from today?
+What is today plus 1 day?
+What is today minus 1 day?
+What is January 1, 2023, plus 30 days?
+What is February 15, 2023, minus 2 weeks?
+What is March 10, 2023, plus 3 months?
+What is December 31, 2023, minus 5 years?
+What is today plus 1 week and 2 days?
+What is today minus 1 month and 15 days?
+What is January 1, 2023, plus 1 year and 1 day?
+What is the third Friday of March 2023?
+What is the last day of February 2024?
+What is the first Monday of January 2023?
+What is the second Tuesday of November 2023?
+What is the fourth Sunday of December 2023?
+What is the day of the week for January 1, 2023?
+What is the day of the week for December 25, 2023?
+What is the day of the week for February 29, 2024?
+What is the day of the week for July 4, 2023?
+What is the day of the week for October 31, 2023?

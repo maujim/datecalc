@@ -33,7 +33,7 @@ app, rt = fast_app(
     hdrs=(
         ft.Link(
             rel="stylesheet",
-            href="/style.css",
+            href="/styles.css",
             type="text/css",
         ),
         *BOOTSTRAP_HEADERS,
@@ -41,29 +41,22 @@ app, rt = fast_app(
 )
 
 
-@dataclass(frozen=True)
-class HistoryEntry:
-    query: str
-    failed: bool = False
-
-
-history: [HistoryEntry] = []
-
-
 @app.get("/")
 def get():
+    common_cls = "p-4 bg-white rounded-3 border shadow-sm"
+
     query_form = Form(
-        Div(
-            Label("Enter your query:", _for="query", cls="form-label"),
-            Input(type="text", name="query", id="query", cls="form-control"),
-            cls="form-group mb-3",
-        ),
-        Button("Submit", cls="btn btn-primary mb-3"),
-        cls="mt-5",
+        Label("Enter your query:", _for="query", cls="form-label"),
+        Input(type="text", name="query", id="query", cls="form-control mb-2"),
+        Button("Submit", cls="btn btn-primary w-100 mb-2"),
+        cls="form-group",
         hx_get="/parse",
         hx_swap="beforebegin",
         hx_target="next .history",
     )
+    answer = Div(id="answer")
+
+    form_container = Div(query_form, answer, cls=f"{common_cls} mb-4")
 
     sample_queries = [
         "how long until start of december",
@@ -72,11 +65,20 @@ def get():
         "apple sauce",
         "another bad one",
     ]
-    something = map(parse, sample_queries)
+    something = [parse(q, swap=False) for q in sample_queries]
 
-    history_container = Div(
-        *something,
+    history = Div(
+        Div(*something, cls="card-body"),
         id="history-container container",
+        cls="card",
+    )
+
+    history_container = Div(H2("Query History", cls="pb-2"), history, cls=common_cls)
+
+    main_container = Div(
+        Div(form_container, history_container, cls="container"),
+        cls="container-fluid",
+        style="min-height: 100vh; background-color: #e3f2fd; padding: 20px;",
     )
 
     # FIXME:
@@ -88,12 +90,13 @@ def get():
     # 2) we can use hx-on::after-swap to dynamically move the element into the
     # later one
 
-    return Title("mukund"), Div(query_form, history_container, cls="container")
+    return Title("mukund"), main_container
 
 
 @app.get("/parse")
-def parse(query: str):
-    snippet = Div(cls="history border border-primary rounded")
+def parse(query: str, swap: bool = True):
+    base_cls = "history card mb-2"
+    elements = []
 
     try:
         resp = run_application_parser(query)
@@ -101,21 +104,24 @@ def parse(query: str):
         body = f"There are {delta} days between {resp['start_date']} and {resp[ 'end_date' ]}"
 
         resp_pretty = orjson.dumps(resp).decode()
-        snippet = ft.Div(
-            H1(query),
+        elements = [
             body,
-            ft.Div("raw response below:"),
-            ft.Code(resp),
-            cls="history border border-success border-2 rounded",
-        )
+            ft.Div("raw response below:", cls="mt-4"),
+            ft.Code(resp_pretty),
+        ]
     except parsy.ParseError as e:
-        snippet = ft.Div(
-            H1(query),
-            e,
-            cls="history border border-danger border-2 rounded",
-        )
+        elements = ["ParseError: {}".format(e)]
 
-    return snippet
+    wrapped = Div(H3(query), *elements, cls="card-body")
+
+    if swap:
+        ret = Div(wrapped, cls=base_cls), Div(
+            elements[0], hx_swap_oob="true", id="answer"
+        )
+    else:
+        ret = Div(wrapped, cls=base_cls)
+
+    return ret
 
 
 serve()
